@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import {Configuration, DefaultConfiguration} from './configuration'
+import { Configuration, DefaultConfiguration } from './configuration'
 import * as core from '@actions/core'
 import * as path from 'path'
 
@@ -45,10 +45,18 @@ export function resolveConfiguration(
 ): Configuration {
   let configuration = DefaultConfiguration
   if (configurationFile) {
-    const configurationPath = path.resolve(
+    var configurationPath = path.resolve(
       githubWorkspacePath,
       configurationFile
     )
+    if (!fs.existsSync(configurationPath)) {
+      const githubOrg = githubWorkspacePath.split('/')
+      var configurationPath = path.resolve(
+        githubOrg[0], '/.github',
+        configurationFile
+      )
+    }
+
     core.debug(`configurationPath = '${configurationPath}'`)
     const providedConfiguration = readConfiguration(configurationPath)
     if (providedConfiguration) {
@@ -65,7 +73,8 @@ function readConfiguration(filename: string): Configuration | null {
   let rawdata: string
   try {
     rawdata = fs.readFileSync(filename, 'utf8')
-  } catch (error) {
+  }
+  catch (error) {
     core.info(
       `⚠️ Configuration provided, but it couldn't be found. Fallback to Defaults.`
     )
